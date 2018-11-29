@@ -366,7 +366,7 @@ local function upgrade_elevator(pos, meta)
 end
 
 -- Convert off to on when applicable.
-local off_timer_func = function(pos)
+local off_function_timed = function(pos)
 	local node = minetest.get_node(pos)
 	local meta = minetest.get_meta(pos)
 	upgrade_elevator(pos, meta)
@@ -377,7 +377,7 @@ local off_timer_func = function(pos)
 	return true
 end
 
-local on_timer_func = function(pos)
+local on_function_timed = function(pos)
 	local node = minetest.get_node(pos)
 	local meta = minetest.get_meta(pos)
 	upgrade_elevator(pos, meta)
@@ -562,9 +562,9 @@ for _,mode in ipairs({"on", "off"}) do
 	
 	if mode == "on" then
 		node_definition.groups.not_in_creative_inventory = 1
-		node_definition.on_timer = on_timer_func
+		node_definition.on_timer = on_function_timed
 	else
-		node_definition.on_timer = off_timer_func
+		node_definition.on_timer = off_function_timed
 	end
 	
 	minetest.register_node(nodename, node_definition)
@@ -846,13 +846,13 @@ local box_entity = {
 			if node.name == "elevator:shaft" then
 				-- Nothing, just continue on our way.
 			elseif node.name == "elevator:elevator_on" or node.name == "elevator:elevator_off" then
-				-- If this is our target, detach the player here, destroy this box, and update the target elevator without waiting for the abm.
+				-- If this is our target, detach the player here, destroy this box, and update the target elevator without waiting for the timer.
 				if vector.distance(p, self.target) < 1 then
 					minetest.log("action", "[elevator] "..minetest.pos_to_string(p).." broke due to arrival.")
 					detach(self, vector.add(self.target, {x=0, y=-0.4, z=0}))
 					self.object:remove()
 					boxes[self.motor] = nil
-					off_timer_func(self.target, node)
+					off_function_timed(self.target, node)
 					return
 				end
 			else
